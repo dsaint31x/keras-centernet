@@ -32,19 +32,19 @@ def main():
     'wh': 2  # 5
   }
   model = HourglassNetwork(heads=heads, **kwargs)
-  model = CtDetDecode(model)
-  drawer = COCODrawer()
+  model = CtDetDecode(model) 
+  drawer = COCODrawer() # using letterbox_transformer.correct_box()
   fns = sorted(glob(args.fn))
   for fn in tqdm(fns):
-    img = cv2.imread(fn)
+    img = cv2.imread(fn) # output image > bg:original, + letterbox.
     letterbox_transformer = LetterboxTransformer(args.inres[0], args.inres[1])
-    pimg = letterbox_transformer(img)
+    pimg = letterbox_transformer(img)   # processed image.
     pimg = normalize_image(pimg)
     pimg = np.expand_dims(pimg, 0)
     detections = model.predict(pimg)[0]
     for d in detections:
       x1, y1, x2, y2, score, cl = d
-      if score < 0.3:
+      if score < 0.3: # threshold score : 0.3
         break
       x1, y1, x2, y2 = letterbox_transformer.correct_box(x1, y1, x2, y2)
       img = drawer.draw_box(img, x1, y1, x2, y2, cl)

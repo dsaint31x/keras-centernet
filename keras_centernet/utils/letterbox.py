@@ -9,9 +9,9 @@ def training_transform(height, width, output_height, output_width):
   resize_height, resize_width = round(height * scale), round(width * scale)
   pad_top = (output_height - resize_height) // 2
   pad_left = (output_width - resize_width) // 2
-  A = np.float32([[scale, 0.0], [0.0, scale]])
-  B = np.float32([[pad_left], [pad_top]])
-  M = np.hstack([A, B])
+  A = np.float32([[scale, 0.0], [0.0, scale]])  # scailing
+  B = np.float32([[pad_left], [pad_top]])       # translation :real image's left and top 
+  M = np.hstack([A, B]) # affine transform matrix
   return M, output_height, output_width
 
 
@@ -45,8 +45,8 @@ class LetterboxTransformer:
        The resolution is changed but the aspect ratio is kept.
        In `mode='testing'` the input is padded to the next bigger multiple of `max_stride` of the network.
        The orginal resolutions is thus kept."""
-    self.height = height
-    self.width = width
+    self.height = height # output height < input height of ann
+    self.width = width   # output width  < input width of ann
     self.mode = mode
     self.max_stride = max_stride
     self.M = None
@@ -61,6 +61,8 @@ class LetterboxTransformer:
 
     # https://answers.opencv.org/question/33516/cv2warpaffine-results-in-an-image-shifted-by-05-pixel
     # This is different from `cv2.resize(image, (resize_width, resize_height))` & pad
+    # M : affine transform matrix.
+    # (w_out, h_out) : output resolution
     letterbox = cv2.warpAffine(image, M, (w_out, h_out))
     self.M = M
     self.M_inv = invert_transform(M)
